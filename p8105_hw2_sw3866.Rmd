@@ -1,0 +1,20 @@
+---
+title: "Homework 2"
+author: "Siyan Wen"
+date: "2023-09-27"
+output: github_document
+---
+## Problem 1
+```{r}
+
+```
+## Problem 2
+```{r}
+
+```
+## Problem 3
+```{r}
+
+```
+
+
