@@ -4,14 +4,69 @@ author: "Siyan Wen"
 date: "2023-09-27"
 output: github_document
 ---
-## Problem 1
 ```{r}
-
+library(tidyverse)
+library(dplyr)
+```
+## Problem 1
+First, clean the data in pols-month.csv.
+```{r}
+pols_month_df= read_csv(file="data/pols-month.csv")|> 
+  janitor::clean_names()|>
+  separate(mon,into=c("year", "month","day"),sep='-') |>     #separate by"-"
+  mutate(month = month.abb[as.numeric(month)]) |>     #replace month with name
+  mutate(
+    prez_dem=case_match(prez_dem,
+      1 ~ "dem",
+      0 ~ "gop"
+        ))|>
+  rename(president=prez_dem)|>
+  select(year,month,president,gov_gop,sen_gop,rep_gop,gov_dem,sen_dem,rep_dem)
+```
+Second, clean the data in snp.csv.
+```{r}
+snp_df= read_csv(file="data/snp.csv")|>
+  janitor::clean_names()|>
+  separate(date,into=c("month", "day","year"),sep='/')
 ```
 ## Problem 2
+Read and clean the Mr. Trash Wheel sheet:
 ```{r}
+mr.trashwheel_df=
+  readxl::read_excel("data/trash_wheel.xlsx",sheet = 1, range ="A2:N549")|>
+  janitor::clean_names()|>
+  mutate(homes_powered=(weight_tons*500)/30)|>
+  mutate(trash_wheel_name="Mr.Trash Wheel")
 
+mr.trashwheel_df$year = as.numeric(as.character(mr.trashwheel_df$year))
 ```
+Read and clean the Professor Trash Wheel sheet:
+```{r}
+professor.trashwheel_df=
+  readxl::read_excel("data/trash_wheel.xlsx",sheet = 2 , range ="A2:M96")|>
+  janitor::clean_names()|>
+  mutate(homes_powered=(weight_tons*500)/30)|>
+  mutate(trash_wheel_name="Professor.Trash Wheel")
+```
+Read and clean the Gwynnda Trash Wheel sheet:
+```{r}
+gwynnda.trashwheel_df=
+  readxl::read_excel("data/trash_wheel.xlsx",sheet = 4, range ="A2:K108")|>
+  janitor::clean_names()|>
+  mutate(homes_powered=(weight_tons*500)/30)|>
+  mutate(trash_wheel_name="Gwynnda.Trash Wheel")
+```
+Combine three datasets and clean:
+```{r}
+trashwheel_df=
+  bind_rows(mr.trashwheel_df,professor.trashwheel_df,gwynnda.trashwheel_df)|>
+  janitor::clean_names()|>
+  relocate(homes_powered,.before = plastic_bottles)|>
+  relocate(trash_wheel_name)
+
+trashwheel_df[is.na(trashwheel_df)] <- 0
+```
+
 ## Problem 3
 ```{r}
 
