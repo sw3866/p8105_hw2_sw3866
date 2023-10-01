@@ -11,7 +11,7 @@ library(dplyr)
 ## Problem 1
 First, clean the data in pols-month.csv.
 ```{r}
-pols_month_df= read_csv(file="data/pols-month.csv")|> 
+pols_month_df= read_csv("data/pols-month.csv")|> 
   janitor::clean_names()|>
   separate(mon,into=c("year", "month","day"),sep='-') |>     #separate by"-"
   mutate(month = month.abb[as.numeric(month)]) |>     #replace month with name
@@ -25,10 +25,31 @@ pols_month_df= read_csv(file="data/pols-month.csv")|>
 ```
 Second, clean the data in snp.csv.
 ```{r}
-snp_df= read_csv(file="data/snp.csv")|>
+snp_df= read_csv("data/snp.csv")|>
   janitor::clean_names()|>
-  separate(date,into=c("month", "day","year"),sep='/')
+  separate(date,into=c("month", "day","year"),sep='/')|>
+  mutate(month = month.abb[as.numeric(month)])|>
+  select(year, month, close) 
 ```
+Third, clean the data in unemplyment.csv.
+```{r}
+unemployment_df=read_csv("data/unemployment.csv")|>
+  rename(year=Year)|>
+   pivot_longer(
+    Jan:Dec, 
+    names_to = "month",
+    values_to = "unemployment"
+  ) |>
+  mutate(year=as.character(year))
+```
+Finally, merge three datasets.
+```{r}
+merge_df = 
+  left_join(pols_month_df, snp_df)
+merge_final_df=
+  left_join(merge_df, unemployment_df)
+```
+
 ## Problem 2
 Read and clean the Mr. Trash Wheel sheet:
 ```{r}
@@ -66,23 +87,80 @@ trashwheel_df=
 
 trashwheel_df[is.na(trashwheel_df)] <- 0
 ```
-In total, the resulting dataset contains $747$ observations. The number of the total observation is the sum of number of the observation in the all three datasets ( $747=106+547+94$).  
+**Discussion:**
+In total, the resulting dataset contains `747` observations. The number of the total observation is the sum of number of the observation in the all three datasets `(747=106+547+94)`.  
 
-Additional, the resulting dataset contains $16$ variables such as the trash wheel name, the dumpster number, date, the weight of trash, the homes powered estimation and so on. From the dataset, we can tell that: in 2017/01/02, Professor Trash Wheel's dumpster number 1 has collected $1.79$ tons of trash, and these trash can be convert into electricity that can be used to support $29.83333$ household.  
-
-For available data, the total weight of trash collected by Professor Trash Wheel was `r sum(professor.trashwheel_df$weight_tons)` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 is `r sum(filter(gwynnda.trashwheel_df,month=='July',year==2021)$cigarette_butts)`
-
-```{r,results='hide'}
-y=sum(professor.trashwheel_df$weight_tons)
-
-x=filter(gwynnda.trashwheel_df,month=='July',year==2021)
-totalnumber_G_July2021=sum(x$cigarette_butts)
+Additional, the resulting dataset contains `16` variables such as the trash wheel name, the dumpster number, date, the weight of trash, the homes powered estimation and so on. From the dataset, we can tell that: in 2017/01/02, Professor Trash Wheel's dumpster number 1 has collected `1.79` tons of trash, and these trash can be convert into electricity that can be used to support `29.83` household.  
+```{r}
+sum(professor.trashwheel_df$weight_tons)
+sum(filter(gwynnda.trashwheel_df,month=='July',year==2021)$cigarette_butts)
 ```
+For available data, the total weight of trash collected by Professor Trash Wheel was `190.12` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 is `16300`
 
 
 ## Problem 3
+Import, clean, and tidy the dataset of baseline demographics:
 ```{r}
+MCI_baseline_df= read_csv("data/MCI_baseline.csv",skip = 1)|> 
+  janitor::clean_names()|>   # can get the number of recruited participants
+  mutate(sex=as.character(sex)) |>
+  mutate(apoe4=as.character(apoe4)) |>
+  subset(!age_at_onset==".")|>   # can get the number of recruited participants that develop MCI
+  #prepare for calculation the mean of age at onset
+  mutate(age_at_onset=as.numeric(age_at_onset))
+```
+```{r}
+#Average baseline age
+
+mean(MCI_baseline_df$age_at_onset)
+
+#Proportion of women in the study are APOE4 carriers
+number_female=count(MCI_baseline_df,sex==0)
+number_apoe4_female=count(MCI_baseline_df,apoe4==1,sex==0)
+# the number of female is 46; the number of female apoe4 carriers is 30.
+(30/46)*100
 
 ```
 
+```{r setup, include=FALSE}
+# Register an inline hook:
+knitr::knit_hooks$set(inline = function(x) {
+  x <- sprintf("%1.2f", x)
+  paste(x, collapse = ", ")
+})
+```
+```{r}
 
+
+```
+**Discussion:**
+First, we need to use `skip=1` to skip the first line of csv file when we import the dataset since the first line of the csv file is not the title of the variable that we want to show in the dataset. At this stage, the baseline dataset has `483` observation of `6` variables including patient id, sex, apoe4, age at onset and so on. In total, `483` participants were recruited, `97` of them develop MCI. Average baseline age is `70.26`.From the dataset, `65.22 `% of women in the study are APOE4 carriers.  
+
+
+Import, clean, and tidy the dataset of longitudinally observed biomarker values:
+```{r}
+MCI_amyloid_df= read_csv("data/mci_amyloid.csv",skip = 1)|> #import and skip the first line of dataset
+  janitor::clean_names()|> #clean the name of variable
+  rename(id=study_id) #rename the study_id variable to make it consistent with previous dataset
+```
+**Discussion:**
+The amyloid dataset has `487` observation and `6` variables including id, the amyloid β
+ 42/40 ratio at the baseline and at the time2/4/6/8 of the study.
+ 
+Combine the demographic and biomarker datasets:
+```{r}
+MCI_df=
+  left_join(MCI_baseline_df,MCI_amyloid_df, by="id")
+```
+**Discussion:**
+From the`MCI_df` dataset, we can find out that: there are `3` participants only appears in the baseline experiment which means they did not do any of the amyloid experiment at all. Also, many participants miss one or two times of the amyloid experiment. The resulting dataset has `97` observation and `11` variable including the information from both datasets.   
+
+Save the combine dataset:
+```{r}
+save(MCI_df,file="data/MCI_df.csv")
+```
+
+ 
+ 
+ 
+ 
