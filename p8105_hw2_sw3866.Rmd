@@ -54,7 +54,7 @@ merge_final_df=
 Read and clean the Mr. Trash Wheel sheet:
 ```{r}
 mr.trashwheel_df=
-  readxl::read_excel("data/trash_wheel.xlsx",sheet = 1, range ="A2:N549")|>
+  readxl::read_excel("data/trash_wheel.xlsx",sheet = 1, range ="A2:N586")|>
   janitor::clean_names()|>
   mutate(homes_powered=(weight_tons*500)/30)|>
   mutate(trash_wheel_name="Mr.Trash Wheel")
@@ -64,7 +64,7 @@ mr.trashwheel_df$year = as.numeric(as.character(mr.trashwheel_df$year))
 Read and clean the Professor Trash Wheel sheet:
 ```{r}
 professor.trashwheel_df=
-  readxl::read_excel("data/trash_wheel.xlsx",sheet = 2 , range ="A2:M96")|>
+  readxl::read_excel("data/trash_wheel.xlsx",sheet = 2 , range ="A2:M108")|>
   janitor::clean_names()|>
   mutate(homes_powered=(weight_tons*500)/30)|>
   mutate(trash_wheel_name="Professor Trash Wheel")
@@ -72,7 +72,7 @@ professor.trashwheel_df=
 Read and clean the Gwynnda Trash Wheel sheet:
 ```{r}
 gwynnda.trashwheel_df=
-  readxl::read_excel("data/trash_wheel.xlsx",sheet = 4, range ="A2:K108")|>
+  readxl::read_excel("data/trash_wheel.xlsx",sheet = 4, range ="A2:L157")|>
   janitor::clean_names()|>
   mutate(homes_powered=(weight_tons*500)/30)|>
   mutate(trash_wheel_name="Gwynnda Trash Wheel")
@@ -88,14 +88,14 @@ trashwheel_df=
 trashwheel_df[is.na(trashwheel_df)] <- 0
 ```
 **Discussion:**
-In total, the resulting dataset contains `747` observations. The number of the total observation is the sum of number of the observation in the all three datasets `(747=106+547+94)`.  
+In total, the resulting dataset contains `845` observations. The number of the total observation is the sum of number of the observation in the all three datasets `(845=155+584+106)`.  
 
-Additional, the resulting dataset contains `16` variables such as the trash wheel name, the dumpster number, date, the weight of trash, the homes powered estimation and so on. From the dataset, we can tell that: in 2017/01/02, Professor Trash Wheel's dumpster number 1 has collected `1.79` tons of trash, and these trash can be convert into electricity that can be used to support `29.83` household.  
+Additional, the resulting dataset contains `15` variables such as the trash wheel name, the dumpster number, date, the weight of trash, the homes powered estimation and so on. From the dataset, we can tell that: in 2017/01/02, Professor Trash Wheel's dumpster number 1 has collected `1.79` tons of trash, and these trash can be convert into electricity that can be used to support `29.83` household.  
 ```{r}
 sum(professor.trashwheel_df$weight_tons)
 sum(filter(gwynnda.trashwheel_df,month=='July',year==2021)$cigarette_butts)
 ```
-For available data, the total weight of trash collected by Professor Trash Wheel was `190.12` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 is `16300`
+For available data, the total weight of trash collected by Professor Trash Wheel was `216.26` tons. The total number of cigarette butts collected by Gwynnda in July of 2021 is `16300`
 
 
 ## Problem 3
@@ -128,10 +128,6 @@ knitr::knit_hooks$set(inline = function(x) {
   x <- sprintf("%1.2f", x)
   paste(x, collapse = ", ")
 })
-```
-```{r}
-
-
 ```
 **Discussion:**
 First, we need to use `skip=1` to skip the first line of csv file when we import the dataset since the first line of the csv file is not the title of the variable that we want to show in the dataset. At this stage, the baseline dataset has `483` observation of `6` variables including patient id, sex, apoe4, age at onset and so on. In total, `483` participants were recruited, `97` of them develop MCI. Average baseline age is `70.26`.From the dataset, `65.22 `% of women in the study are APOE4 carriers.  
