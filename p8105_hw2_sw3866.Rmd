@@ -121,11 +121,11 @@ MCI_baseline_df= read_csv("data/MCI_baseline.csv",skip = 1)|>
 ```{r}
 #Average baseline age
 
-mean1=mean(MCI_baseline_df$age_at_onset)
+mean1=mean(MCI_baseline_df$current_age)
 
 #Proportion of women in the study are APOE4 carriers
-number_female=count(MCI_baseline_df,sex==0)
-number_apoe4_female=count(MCI_baseline_df,apoe4==1,sex==0)
+number_female=count(MCI_baseline_df,sex=="female")
+number_apoe4_female=count(MCI_baseline_df,apoe4=="apoe4 carrier",sex=="female")
 # the number of female is 46; the number of female apoe4 carriers is 30.
 prop=(number_apoe4_female$n[4]/number_female$n[2])*100
 
